@@ -3,50 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <title>Translator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial; padding: 30px; }
-        textarea { width: 400px; height: 100px; }
-        button { padding: 10px 20px; margin-top: 10px; }
-        #result { margin-top: 20px; font-weight: bold; }
+        body { padding-top: 40px; background-color: #f8f9fa; }
+        .container { max-width: 700px; }
     </style>
 </head>
 <body>
+    <div class="container shadow-sm bg-white rounded p-5">
+        <h2 class="mb-4 text-center">Translator en-ru</h2>
 
-    <h2>English → Russian Translator</h2>
+        <div class="mb-3">
+            <label for="text" class="form-label">Enter English text:</label>
+            <textarea class="form-control" id="text" rows="4" placeholder="Type here..."></textarea>
+        </div>
 
-    <textarea id="text" placeholder="Enter English text..."></textarea><br>
+        <button id="translate-btn" class="btn btn-primary btn-lg w-100 mb-4">Translate</button>
 
-    <!-- Убираем onclick и добавляем id -->
-    <button id="translateBtn">Translate</button>
+        <h5 class="mt-4">Result:</h5>
+        <div id="result" class="alert alert-light" role="alert" style="min-height: 60px;">
+            <!-- Перевод появится здесь -->
+        </div>
+    </div>
 
-    <h3>Result:</h3>
-    <div id="result"></div>
+    <!-- Bootstrap JS bundle (опционально) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Скрипт для перевода -->
     <script>
-        // Привязываем обработчик клика через JS
-        document.getElementById("translateBtn").addEventListener("click", async function() {
-            let text = document.getElementById("text").value;
+    document.addEventListener("DOMContentLoaded", function() {
+        const btn = document.getElementById('translate-btn');
+        btn.addEventListener('click', async function() {
+            const text = document.getElementById("text").value;
+            const resultDiv = document.getElementById('result');
+
+            if (!text.trim()) {
+                resultDiv.className = 'alert alert-warning';
+                resultDiv.innerText = 'Please enter some text.';
+                return;
+            }
 
             try {
-                let response = await fetch('/predict', {
+                const response = await fetch('/predict', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: text })
                 });
 
-                let data = await response.json();
+                const data = await response.json();
 
                 if (data.error) {
-                    document.getElementById("result").innerText = "Error: " + data.error;
-                    return;
+                    resultDiv.className = 'alert alert-danger';
+                    resultDiv.innerText = data.error;
+                } else {
+                    resultDiv.className = 'alert alert-success';
+                    resultDiv.innerText = data.result;
                 }
-
-                document.getElementById("result").innerText = data.result;
             } catch (err) {
-                document.getElementById("result").innerText = "Error: " + err.message;
+                resultDiv.className = 'alert alert-danger';
+                resultDiv.innerText = 'Request failed: ' + err;
             }
         });
+    });
     </script>
-
 </body>
 </html>
