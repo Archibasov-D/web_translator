@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Translator</title>
+    <style>
+        body { font-family: Arial; padding: 30px; }
+        textarea { width: 400px; height: 100px; }
+        button { padding: 10px 20px; margin-top: 10px; }
+        #result { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>English → Russian Translator</h2>
+
+    <textarea id="text" placeholder="Enter English text..."></textarea><br>
+
+    <!-- Убираем onclick и добавляем id -->
+    <button id="translateBtn">Translate</button>
+
+    <h3>Result:</h3>
+    <div id="result"></div>
+
+    <script>
+        // Привязываем обработчик клика через JS
+        document.getElementById("translateBtn").addEventListener("click", async function() {
+            let text = document.getElementById("text").value;
+
+            try {
+                let response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ text: text })
+                });
+
+                let data = await response.json();
+
+                if (data.error) {
+                    document.getElementById("result").innerText = "Error: " + data.error;
+                    return;
+                }
+
+                document.getElementById("result").innerText = data.result;
+            } catch (err) {
+                document.getElementById("result").innerText = "Error: " + err.message;
+            }
+        });
+    </script>
+
+</body>
+</html>
