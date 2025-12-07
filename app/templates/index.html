@@ -3,69 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <title>Translator</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { padding-top: 40px; background-color: #f8f9fa; }
-        .container { max-width: 700px; }
-    </style>
 </head>
-<body>
-    <div class="container shadow-sm bg-white rounded p-5">
-        <h2 class="mb-4 text-center">Translator en-ru</h2>
 
-        <div class="mb-3">
-            <label for="text" class="form-label">Enter English text:</label>
-            <textarea class="form-control" id="text" rows="4" placeholder="Type here..."></textarea>
-        </div>
+<body class="bg-light">
+<div class="container mt-5 p-4 bg-white rounded shadow" style="max-width: 700px">
+    <h2 class="mb-4 text-center">Simple Translator</h2>
 
-        <button id="translate-btn" class="btn btn-primary btn-lg w-100 mb-4">Translate</button>
+    <label class="form-label">Enter text:</label>
+    <textarea id="text" class="form-control mb-3" rows="4"></textarea>
 
-        <h5 class="mt-4">Result:</h5>
-        <div id="result" class="alert alert-light" role="alert" style="min-height: 60px;">
-            <!-- Перевод появится здесь -->
-        </div>
-    </div>
+    <label class="form-label">Select tokenizer flag:</label>
+    <select id="flag" class="form-select mb-4">
+        <option value="en">English</option>
+        <option value="de">German</option>
+        <option value="fr">French</option>
+        <option value="ru">Russian</option>
+    </select>
 
-    <!-- Bootstrap JS bundle (опционально) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <button id="translateBtn" class="btn btn-primary w-100 mb-4">Translate</button>
 
-    <!-- Скрипт для перевода -->
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const btn = document.getElementById('translate-btn');
-        btn.addEventListener('click', async function() {
-            const text = document.getElementById("text").value;
-            const resultDiv = document.getElementById('result');
+    <div id="result" class="alert alert-success" style="min-height: 50px"></div>
+</div>
 
-            if (!text.trim()) {
-                resultDiv.className = 'alert alert-warning';
-                resultDiv.innerText = 'Please enter some text.';
-                return;
-            }
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("translateBtn");
+    btn.addEventListener("click", translateText);
+});
 
-            try {
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: text })
-                });
+async function translateText(event) {
+    const btn = document.getElementById("translateBtn");
+    const resultDiv = document.getElementById("result");
+    const text = document.getElementById("text").value.trim();
+    const flag = document.getElementById("flag").value;
 
-                const data = await response.json();
+    if (!text) {
+        resultDiv.innerText = "Please enter text to translate.";
+        return;
+    }
 
-                if (data.error) {
-                    resultDiv.className = 'alert alert-danger';
-                    resultDiv.innerText = data.error;
-                } else {
-                    resultDiv.className = 'alert alert-success';
-                    resultDiv.innerText = data.result;
-                }
-            } catch (err) {
-                resultDiv.className = 'alert alert-danger';
-                resultDiv.innerText = 'Request failed: ' + err;
-            }
+    // UI: заблокировать кнопку и показать индикатор
+    btn.disabled = true;
+    const prev = resultDiv.innerText;
+    resultDiv.innerText = "Translating...";
+
+    try {
+        const res = await fetch("/predict", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ text: text, flag: flag })
         });
-    });
-    </script>
+
+        if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(`Server returned ${res.status}: ${txt}`);
+        }
+
+        const data = await res.json();
+
+        // <-- здесь ключ "translation", как в вашем FastAPI
+        resultDiv.innerText = data.translation ?? "No translation returned.";
+    } catch (err) {
+        console.error(err);
+        resultDiv.innerText = "Error: " + (err.message || err);
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
+
 </body>
 </html>
+
