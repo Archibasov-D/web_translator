@@ -18,7 +18,7 @@ def greedy_generate_onnx(
             "attention_mask": attention_mask,
         }
     )
-    encoder_hidden_states = encoder_outputs[0]# До этого этапа очень понятно
+    encoder_hidden_states = encoder_outputs[0]
 
     decoder_start_token_id = 2
     
@@ -29,7 +29,7 @@ def greedy_generate_onnx(
         decoder_inputs = {
             "input_ids": decoder_input_ids,
             "encoder_hidden_states": encoder_hidden_states,
-            "encoder_attention_mask": attention_mask,  # вот этот ключ добавили
+            "encoder_attention_mask": attention_mask,  
         }
 
         decoder_outputs = decoder_session.run(None, decoder_inputs)

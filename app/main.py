@@ -52,6 +52,6 @@ async def predict(req: TranslationRequest):
 
     output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-    return {"translation": output_text}   # <--- ВАЖНО!
+    return {"translation": output_text}
 
 
